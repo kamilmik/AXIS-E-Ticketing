@@ -4,39 +4,65 @@
  */
 package view;
 
-/**
- *
- * @author AXIOO
- */
+import java.awt.Image;
+import javax.swing.ImageIcon;
+
 public class RegisterView extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(RegisterView.class.getName());
+    private final controller.AuthController authController = new controller.AuthController();
 
-    /**
-     * Creates new form RegisterView
-     */
     public RegisterView() {
         initComponents();
         this.setSize(1200, 920); 
         this.setLocationRelativeTo(null);
+
+        // Buang gap bawaan layout
+        if (getContentPane().getLayout() instanceof java.awt.BorderLayout) {
+            ((java.awt.BorderLayout)getContentPane().getLayout()).setHgap(0);
+            ((java.awt.BorderLayout)getContentPane().getLayout()).setVgap(0);
+        }
+
+        // Styling Warna Tombol Biar Kontras
+        btnRegister.setForeground(java.awt.Color.WHITE);
+        btnKembali.setForeground(java.awt.Color.WHITE);
+        btnKembali.setContentAreaFilled(false); 
+        btnKembali.setBorderPainted(false);
+
         try {
+            // Skala Gambar Kereta (Anti Keseret)
+            java.net.URL trainUrl = getClass().getResource("/image/axisTrain.jpg");
+            if (trainUrl != null) {
+                Image srcImg = new ImageIcon(trainUrl).getImage();
+                int targetW = 600, targetH = 920;
+                double ratio = Math.max((double) targetW / srcImg.getWidth(null), (double) targetH / srcImg.getHeight(null));
+                int newW = (int) (srcImg.getWidth(null) * ratio);
+                int newH = (int) (srcImg.getHeight(null) * ratio);
+                
+                java.awt.image.BufferedImage bImg = new java.awt.image.BufferedImage(targetW, targetH, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                java.awt.Graphics2D g2 = bImg.createGraphics();
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g2.drawImage(srcImg, (targetW - newW) / 2, (targetH - newH) / 2, newW, newH, null);
+                g2.dispose();
+                
+                jLabel1.setIcon(new ImageIcon(bImg));
+                jLabel1.setText(""); 
+            }
 
-            javax.swing.ImageIcon trainIcon = new javax.swing.ImageIcon(getClass().getResource("/image/axisTrain.jpg"));
-            java.awt.Image trainImg = trainIcon.getImage();
-            java.awt.Image scaledTrain = trainImg.getScaledInstance(600, 920, java.awt.Image.SCALE_SMOOTH); 
-            jLabel1.setIcon(new javax.swing.ImageIcon(scaledTrain));
-
-            javax.swing.ImageIcon logoIcon = new javax.swing.ImageIcon(getClass().getResource("/image/axis_upd_wht.png"));
-            java.awt.Image logoImg = logoIcon.getImage();
-            java.awt.Image scaledLogo = logoImg.getScaledInstance(300, 150, java.awt.Image.SCALE_SMOOTH); 
-            jLabel2.setIcon(new javax.swing.ImageIcon(scaledLogo));
-            
+            // Skala Gambar Logo 
+            java.net.URL logoUrl = getClass().getResource("/image/asix-upd-wht.png");
+            if (logoUrl == null) logoUrl = getClass().getResource("/image/axis-upd-wht.png");
+            if (logoUrl != null) {
+                ImageIcon logoIcon = new ImageIcon(logoUrl);
+                int targetW = 300;
+                int targetH = (logoIcon.getIconHeight() * targetW) / logoIcon.getIconWidth();
+                jLabel2.setIcon(new ImageIcon(logoIcon.getImage().getScaledInstance(targetW, targetH, Image.SCALE_SMOOTH)));
+                jLabel2.setText("");
+            }
         } catch (Exception e) {
             System.out.println("Gambar gagal diload: " + e.getMessage());
         }
     }
-
-    private final controller.AuthController authController = new controller.AuthController();
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

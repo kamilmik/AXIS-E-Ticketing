@@ -4,7 +4,6 @@ import controller.AdminController;
 import controller.SessionManager;
 import java.awt.*;
 import java.util.Date;
-import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
@@ -28,6 +27,11 @@ public class DashboardAdminView extends javax.swing.JFrame {
     private String selectedIdTarif = null;
     private int selectedIdAsalTapOut = -1;
     private double currentEstimasiTarif = 0.0;
+
+    // Komponen Custom untuk Filter & Sorting
+    private JComboBox<String> cmbSortJadwalWaktu;
+    private JComboBox<String> cmbFilterStasiunKategori;
+    private JComboBox<String> cmbSortMonitoringWaktu;
 
     public DashboardAdminView() {
         initComponents();
@@ -55,9 +59,10 @@ public class DashboardAdminView extends javax.swing.JFrame {
     private void perbaikiTampilanDanLayout() {
         try {
             java.net.URL imgUrl = getClass().getResource("/image/asix-upd-wht.png");
-            ImageIcon icon = (imgUrl != null) ? new ImageIcon(imgUrl) : new ImageIcon("C:\\SEMESTER 3\\CAPSTONE\\AXIS\\src\\main\\resources\\image\\asix-upd-wht.png");
-            Image img = icon.getImage();
-            if (icon.getIconWidth() > 0) {
+            if(imgUrl == null) imgUrl = getClass().getResource("/image/axis-upd-wht.png");
+            if (imgUrl != null) {
+                ImageIcon icon = new ImageIcon(imgUrl);
+                Image img = icon.getImage();
                 int targetW = 180;
                 int targetH = (icon.getIconHeight() * targetW) / icon.getIconWidth();
                 jLabel1.setIcon(new ImageIcon(img.getScaledInstance(targetW, targetH, Image.SCALE_SMOOTH)));
@@ -68,6 +73,12 @@ public class DashboardAdminView extends javax.swing.JFrame {
         jLabel2.setForeground(Color.WHITE);
         lblInfoAdmin.setForeground(new Color(200, 230, 201));
         jLabel17.setText("");
+
+        Date sekarang = new Date();
+        spnWaktuBerangkat.setModel(new SpinnerDateModel(sekarang, sekarang, null, java.util.Calendar.MINUTE));
+        spnWaktuBerangkat.setEditor(new JSpinner.DateEditor(spnWaktuBerangkat, "yyyy-MM-dd HH:mm:ss"));
+        spnWaktuTiba.setModel(new SpinnerDateModel(sekarang, sekarang, null, java.util.Calendar.MINUTE));
+        spnWaktuTiba.setEditor(new JSpinner.DateEditor(spnWaktuTiba, "yyyy-MM-dd HH:mm:ss"));
 
         pnlDashboard.removeAll();
         pnlDashboard.setLayout(new BorderLayout(20, 20));
@@ -103,24 +114,69 @@ public class DashboardAdminView extends javax.swing.JFrame {
     }
 
     private void styleTable(JTable table, DefaultTableModel model) {
-        table.setModel(model); table.setRowHeight(30);
-        table.setSelectionBackground(new Color(45, 87, 48)); table.setSelectionForeground(Color.WHITE);
-        table.setShowGrid(true); table.getTableHeader().setFont(new Font("Verdana", Font.BOLD, 12));
+        table.setModel(model); 
+        table.setRowHeight(30);
+        table.setAutoCreateRowSorter(true); 
+        table.setSelectionBackground(new Color(45, 87, 48)); 
+        table.setSelectionForeground(Color.WHITE);
+        table.setShowGrid(true); 
+        table.getTableHeader().setFont(new Font("Verdana", Font.BOLD, 12));
+    }
+
+    // FUNGSI HELPER: Memasang Filter TAPI Menjaga Header Tabel Tetap Muncul
+    private void pasangFilterDiAtasTabel(JScrollPane scroll, JTable table, JPanel filterPanel) {
+        JPanel headerWrap = new JPanel(new BorderLayout());
+        headerWrap.add(filterPanel, BorderLayout.NORTH);
+        headerWrap.add(table.getTableHeader(), BorderLayout.SOUTH);
+        scroll.setColumnHeaderView(headerWrap);
     }
 
     private void setupTableModels() {
         modelJadwal = new DefaultTableModel(new String[]{"ID", "Nama Kereta", "Stasiun Asal", "Stasiun Tujuan", "Berangkat", "Tiba", "Harga", "Grbg", "Kursi"}, 0) { @Override public boolean isCellEditable(int r, int c) { return false; } };
         styleTable(jTable1, modelJadwal);
+        
         modelStasiun = new DefaultTableModel(new String[]{"ID Stasiun", "Nama Stasiun", "Kode Kota", "Kategori"}, 0) { @Override public boolean isCellEditable(int r, int c) { return false; } };
         styleTable(tblStasiun, modelStasiun);
+        
         modelTarif = new DefaultTableModel(new String[]{"ID Tarif", "Stasiun Awal", "Stasiun Akhir", "Harga Rute"}, 0) { @Override public boolean isCellEditable(int r, int c) { return false; } };
         styleTable(tblTarifKomuter, modelTarif);
+        
         modelTapOut = new DefaultTableModel(new String[]{"ID Perjalanan", "NIK", "Nama", "Saldo", "Stasiun Asal", "Waktu Tap-In", "Status"}, 0) { @Override public boolean isCellEditable(int r, int c) { return false; } };
         styleTable(tblTapInKomuter, modelTapOut);
+        
         modelMonitoring = new DefaultTableModel(new String[]{"ID Pesan", "Kode Booking", "NIK", "Nama", "Waktu", "Total Bayar", "Status"}, 0) { @Override public boolean isCellEditable(int r, int c) { return false; } };
         styleTable(tblMonitoringPemesanan, modelMonitoring);
+        
         modelDetailTiket = new DefaultTableModel(new String[]{"ID Tiket", "Barcode", "Nama", "NIK", "Jadwal", "Gerbong", "Kursi"}, 0) { @Override public boolean isCellEditable(int r, int c) { return false; } };
         styleTable(tblDetailTiketPemesanan, modelDetailTiket);
+
+        pasangKomponenFilterDanSort();
+    }
+
+    private void pasangKomponenFilterDanSort() {
+        // 1. Sort Waktu di Kelola Jadwal Antarkota
+        cmbSortJadwalWaktu = new JComboBox<>(new String[]{"Urut Waktu: Terdekat (ASC)", "Urut Waktu: Terjauh (DESC)"});
+        JPanel pnlFilterJadwal = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        pnlFilterJadwal.setBackground(new Color(204, 204, 204));
+        pnlFilterJadwal.add(new JLabel("Sorting Jadwal:"));
+        pnlFilterJadwal.add(cmbSortJadwalWaktu);
+        pasangFilterDiAtasTabel(jScrollPane1, jTable1, pnlFilterJadwal);
+
+        // 2. Filter Kategori di Tabel Stasiun
+        cmbFilterStasiunKategori = new JComboBox<>(new String[]{"Semua Kategori", "Antarkota", "Komuter", "Keduanya"});
+        JPanel pnlFilterStasiun = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        pnlFilterStasiun.setBackground(new Color(153, 153, 153));
+        pnlFilterStasiun.add(new JLabel("Filter Kategori Layanan:"));
+        pnlFilterStasiun.add(cmbFilterStasiunKategori);
+        pasangFilterDiAtasTabel(jScrollPane2, tblStasiun, pnlFilterStasiun);
+
+        // 3. Sort Waktu Pesan di Monitoring Pemesanan
+        cmbSortMonitoringWaktu = new JComboBox<>(new String[]{"Waktu Pesan: Terbaru (DESC)", "Waktu Pesan: Terlama (ASC)"});
+        JPanel pnlFilterMon = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        pnlFilterMon.setBackground(new Color(204, 204, 204));
+        pnlFilterMon.add(new JLabel("Urutkan:"));
+        pnlFilterMon.add(cmbSortMonitoringWaktu);
+        pasangFilterDiAtasTabel(jScrollPane5, tblMonitoringPemesanan, pnlFilterMon);
     }
 
     private void refreshAllData() {
@@ -130,17 +186,18 @@ public class DashboardAdminView extends javax.swing.JFrame {
         lblTotalGabungan.setText(String.valueOf(stats[2]));
         lblTotalKeberangkatan.setText(String.valueOf(stats[3]));
 
-        // Refresh Combobox
         cmbStasiunAsalJadwal.removeAllItems(); cmbStasiunTujuanJadwal.removeAllItems();
         for (String s : controller.dapatkanListStasiun("Antarkota")) {
             cmbStasiunAsalJadwal.addItem(s); cmbStasiunTujuanJadwal.addItem(s);
         }
-        cmbTarifStasiunAsal.removeAllItems(); cmbTarifStasiunAkhir.removeAllItems(); cmbStasiunKeluar.removeAllItems();
+        cmbTarifStasiunAsal.removeAllItems(); cmbTarifStasiunAkhir.removeAllItems();
         for (String s : controller.dapatkanListStasiun("Komuter")) {
-            cmbTarifStasiunAsal.addItem(s); cmbTarifStasiunAkhir.addItem(s); cmbStasiunKeluar.addItem(s);
+            cmbTarifStasiunAsal.addItem(s); cmbTarifStasiunAkhir.addItem(s);
         }
 
-        // Refresh Tabel via Controller
+        cmbStasiunKeluar.removeAllItems();
+        cmbStasiunKeluar.addItem("-- Pilih Stasiun Akhir --");
+
         controller.muatTabelJadwal(modelJadwal);
         controller.muatTabelStasiun(modelStasiun);
         controller.muatTabelTarif(modelTarif);
@@ -148,14 +205,44 @@ public class DashboardAdminView extends javax.swing.JFrame {
         controller.muatMonitoring(modelMonitoring, null);
     }
 
-    // DI SINI VIEW MURNI CUMA ME-ROUTING DATA KE CONTROLLER
     private void setupEvents() {
         btnRefreshDashboard.addActionListener(e -> refreshAllData());
 
+        // Event Sorting Waktu Berangkat di Kelola Jadwal
+        cmbSortJadwalWaktu.addActionListener(e -> {
+            javax.swing.table.TableRowSorter<DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(modelJadwal);
+            jTable1.setRowSorter(sorter);
+            SortOrder order = cmbSortJadwalWaktu.getSelectedIndex() == 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING;
+            sorter.setSortKeys(java.util.Collections.singletonList(new RowSorter.SortKey(4, order)));
+            sorter.sort();
+        });
+
+        // Event Filter Kategori Layanan di Kelola Stasiun
+        cmbFilterStasiunKategori.addActionListener(e -> {
+            javax.swing.table.TableRowSorter<DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(modelStasiun);
+            tblStasiun.setRowSorter(sorter);
+            String pil = (String) cmbFilterStasiunKategori.getSelectedItem();
+            if (pil == null || pil.equals("Semua Kategori")) {
+                sorter.setRowFilter(null);
+            } else {
+                sorter.setRowFilter(RowFilter.regexFilter("^" + pil + "$", 3));
+            }
+        });
+
+        // Event Sorting Waktu Pesan di Monitoring Pemesanan (Kolom indeks 4 = Waktu)
+        cmbSortMonitoringWaktu.addActionListener(e -> {
+            javax.swing.table.TableRowSorter<DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(modelMonitoring);
+            tblMonitoringPemesanan.setRowSorter(sorter);
+            SortOrder order = cmbSortMonitoringWaktu.getSelectedIndex() == 0 ? SortOrder.DESCENDING : SortOrder.ASCENDING;
+            sorter.setSortKeys(java.util.Collections.singletonList(new RowSorter.SortKey(4, order)));
+            sorter.sort();
+        });
+
         // --- MENU JADWAL ANTARKOTA ---
         jTable1.getSelectionModel().addListSelectionListener(e -> {
-            int row = jTable1.getSelectedRow();
-            if (row >= 0) {
+            int viewRow = jTable1.getSelectedRow();
+            if (viewRow >= 0) {
+                int row = jTable1.convertRowIndexToModel(viewRow);
                 selectedIdJadwal = Integer.parseInt(modelJadwal.getValueAt(row, 0).toString());
                 txtNamaKereta.setText(modelJadwal.getValueAt(row, 1).toString());
                 cmbStasiunAsalJadwal.setSelectedItem(modelJadwal.getValueAt(row, 2).toString());
@@ -172,22 +259,33 @@ public class DashboardAdminView extends javax.swing.JFrame {
         });
 
         btnTambahJadwal.addActionListener(e -> {
-            String nama = txtNamaKereta.getText().trim();
-            String asal = (String) cmbStasiunAsalJadwal.getSelectedItem();
-            String tujuan = (String) cmbStasiunTujuanJadwal.getSelectedItem();
-            String harga = txtHargaDasar.getText().trim();
-            String gerbong = txtTotalGerbong.getText().trim();
-            String kursi = txtKapasitasKursi.getText().trim();
-            
-            // View Meneruskan / Meng-Address ke Controller
-            String res = controller.tambahJadwal(nama, asal, tujuan, (Date)spnWaktuBerangkat.getValue(), (Date)spnWaktuTiba.getValue(), harga, gerbong, kursi);
+            String res = controller.tambahJadwal(
+                txtNamaKereta.getText().trim(),
+                (String) cmbStasiunAsalJadwal.getSelectedItem(),
+                (String) cmbStasiunTujuanJadwal.getSelectedItem(),
+                (Date) spnWaktuBerangkat.getValue(),
+                (Date) spnWaktuTiba.getValue(),
+                txtHargaDasar.getText().trim(),
+                txtTotalGerbong.getText().trim(),
+                txtKapasitasKursi.getText().trim()
+            );
             if (res.equals("SUCCESS")) {
                 JOptionPane.showMessageDialog(this, "Jadwal berhasil ditambahkan!"); refreshAllData();
             } else { JOptionPane.showMessageDialog(this, res); }
         });
 
         btnEditJadwal.addActionListener(e -> {
-            String res = controller.updateJadwal(selectedIdJadwal, txtNamaKereta.getText().trim(), (String)cmbStasiunAsalJadwal.getSelectedItem(), (String)cmbStasiunTujuanJadwal.getSelectedItem(), (Date)spnWaktuBerangkat.getValue(), (Date)spnWaktuTiba.getValue(), txtHargaDasar.getText().trim(), txtTotalGerbong.getText().trim(), txtKapasitasKursi.getText().trim());
+            String res = controller.updateJadwal(
+                selectedIdJadwal, 
+                txtNamaKereta.getText().trim(), 
+                (String)cmbStasiunAsalJadwal.getSelectedItem(), 
+                (String)cmbStasiunTujuanJadwal.getSelectedItem(), 
+                (Date)spnWaktuBerangkat.getValue(), 
+                (Date)spnWaktuTiba.getValue(), 
+                txtHargaDasar.getText().trim(), 
+                txtTotalGerbong.getText().trim(), 
+                txtKapasitasKursi.getText().trim()
+            );
             if (res.equals("SUCCESS")) { JOptionPane.showMessageDialog(this, "Jadwal berhasil diupdate!"); refreshAllData(); } 
             else { JOptionPane.showMessageDialog(this, res); }
         });
@@ -199,8 +297,9 @@ public class DashboardAdminView extends javax.swing.JFrame {
 
         // --- MENU STASIUN ---
         tblStasiun.getSelectionModel().addListSelectionListener(e -> {
-            int row = tblStasiun.getSelectedRow();
-            if (row >= 0) {
+            int viewRow = tblStasiun.getSelectedRow();
+            if (viewRow >= 0) {
+                int row = tblStasiun.convertRowIndexToModel(viewRow);
                 selectedIdStasiun = Integer.parseInt(modelStasiun.getValueAt(row, 0).toString());
                 txtNamaStasiun.setText(modelStasiun.getValueAt(row, 1).toString());
                 txtKodeKota.setText(modelStasiun.getValueAt(row, 2).toString());
@@ -222,8 +321,9 @@ public class DashboardAdminView extends javax.swing.JFrame {
 
         // --- MENU TARIF KOMUTER ---
         tblTarifKomuter.getSelectionModel().addListSelectionListener(e -> {
-            int row = tblTarifKomuter.getSelectedRow();
-            if (row >= 0) {
+            int viewRow = tblTarifKomuter.getSelectedRow();
+            if (viewRow >= 0) {
+                int row = tblTarifKomuter.convertRowIndexToModel(viewRow);
                 selectedIdTarif = modelTarif.getValueAt(row, 0).toString();
                 cmbTarifStasiunAsal.setSelectedItem(modelTarif.getValueAt(row, 1).toString());
                 cmbTarifStasiunAkhir.setSelectedItem(modelTarif.getValueAt(row, 2).toString());
@@ -245,30 +345,38 @@ public class DashboardAdminView extends javax.swing.JFrame {
 
         // --- MENU TAP-OUT KOMUTER ---
         tblTapInKomuter.getSelectionModel().addListSelectionListener(e -> {
-            int row = tblTapInKomuter.getSelectedRow();
-            if (row >= 0) {
+            int viewRow = tblTapInKomuter.getSelectedRow();
+            if (viewRow >= 0) {
+                int row = tblTapInKomuter.convertRowIndexToModel(viewRow);
                 txtIdPerjalananTerpilih.setText(modelTapOut.getValueAt(row, 0).toString());
                 txtNikPenumpangTapOut.setText(modelTapOut.getValueAt(row, 1).toString() + " - " + modelTapOut.getValueAt(row, 2).toString());
                 String asalStr = modelTapOut.getValueAt(row, 4).toString();
                 selectedIdAsalTapOut = Integer.parseInt(asalStr.split(" - ")[0].trim());
                 
-                // Minta Controller Ngitung Harga
-                currentEstimasiTarif = controller.hitungEstimasiTarif(selectedIdAsalTapOut, (String)cmbStasiunKeluar.getSelectedItem());
-                lblEstimasiTarif.setText("Tarif Potongan: Rp " + currentEstimasiTarif);
+                cmbStasiunKeluar.removeAllItems();
+                cmbStasiunKeluar.addItem("-- Pilih Stasiun Akhir --");
+                for (String stTujuan : controller.dapatkanStasiunTujuanTapOut(selectedIdAsalTapOut)) {
+                    cmbStasiunKeluar.addItem(stTujuan);
+                }
+                currentEstimasiTarif = 0.0;
+                lblEstimasiTarif.setText("Tarif Potongan: Rp 0");
             }
         });
 
         cmbStasiunKeluar.addActionListener(e -> {
             currentEstimasiTarif = controller.hitungEstimasiTarif(selectedIdAsalTapOut, (String)cmbStasiunKeluar.getSelectedItem());
-            lblEstimasiTarif.setText("Tarif Potongan: Rp " + currentEstimasiTarif);
+            lblEstimasiTarif.setText("Tarif Potongan: Rp " + String.format("%,.0f", currentEstimasiTarif));
         });
 
         btnProsesTapOut.addActionListener(e -> {
             String adminCode = (SessionManager.getCurrentAdmin() != null) ? SessionManager.getCurrentAdmin().getKodeKaryawan() : "AXISEMPL_01";
             String res = controller.prosesVerifikasiTapOut(txtIdPerjalananTerpilih.getText().trim(), txtNikPenumpangTapOut.getText(), (String)cmbStasiunKeluar.getSelectedItem(), currentEstimasiTarif, adminCode);
             if (res.equals("SUCCESS")) {
-                JOptionPane.showMessageDialog(this, "Tap-Out Berhasil! Saldo potong Rp" + currentEstimasiTarif);
+                JOptionPane.showMessageDialog(this, "Tap-Out Berhasil! Saldo potong Rp" + String.format("%,.0f", currentEstimasiTarif));
                 txtIdPerjalananTerpilih.setText(""); txtNikPenumpangTapOut.setText(""); lblEstimasiTarif.setText("Tarif Potongan: Rp 0");
+                selectedIdAsalTapOut = -1;
+                cmbStasiunKeluar.removeAllItems();
+                cmbStasiunKeluar.addItem("-- Pilih Stasiun Akhir --");
                 refreshAllData();
             } else { JOptionPane.showMessageDialog(this, res, "Gagal Tap-Out", JOptionPane.ERROR_MESSAGE); }
         });
@@ -280,12 +388,16 @@ public class DashboardAdminView extends javax.swing.JFrame {
         });
         btnResetMonitoring.addActionListener(e -> {
             txtCariKodeBooking.setText("");
+            cmbSortMonitoringWaktu.setSelectedIndex(0);
             controller.muatMonitoring(modelMonitoring, null);
             modelDetailTiket.setRowCount(0);
         });
         tblMonitoringPemesanan.getSelectionModel().addListSelectionListener(e -> {
-            int row = tblMonitoringPemesanan.getSelectedRow();
-            if (row >= 0) controller.muatDetailTiket(modelDetailTiket, modelMonitoring.getValueAt(row, 1).toString());
+            int viewRow = tblMonitoringPemesanan.getSelectedRow();
+            if (viewRow >= 0) {
+                int row = tblMonitoringPemesanan.convertRowIndexToModel(viewRow);
+                controller.muatDetailTiket(modelDetailTiket, modelMonitoring.getValueAt(row, 1).toString());
+            }
         });
     }
 
@@ -297,7 +409,7 @@ public class DashboardAdminView extends javax.swing.JFrame {
         }
         activeButton.setBackground(new Color(232, 245, 233)); activeButton.setForeground(new Color(27, 94, 32));
     }
-
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

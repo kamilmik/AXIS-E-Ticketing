@@ -102,6 +102,15 @@ public class AuthController {
         if (authDAO.isAkunExist(email, nik)) {
             return "EXIST";
         }
+        if (nama.isEmpty() || email.isEmpty() || passCheck.isEmpty() || telp.isEmpty() || nik.isEmpty()) {
+            return "Semua kolom wajib diisi!";
+        }
+        if (!email.contains("@") || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            return "Format email tidak valid! Gunakan format seperti ujang@gmail.com";
+        }
+        if (!nik.matches("\\d+") || !telp.matches("\\d+")) {
+            return "NIK dan Nomor Telepon harus berupa angka!";
+        }
         String newId = authDAO.generateIdPenumpang();
         Penumpang p = new Penumpang(newId, email, password, nik, nama, telp, 0.0);
         return authDAO.registerPenumpang(p) ? "SUCCESS" : "Gagal menyimpan ke database!";

@@ -109,9 +109,16 @@ public class MenuUtamaView extends javax.swing.JFrame {
         JPanel gridInputs = new JPanel(new GridLayout(2, 2, 30, 18));
         gridInputs.setOpaque(false);
 
-        spnTanggalBerangkat.setModel(new SpinnerDateModel(new Date(), null, null, java.util.Calendar.DAY_OF_MONTH));
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        cal.set(java.util.Calendar.MINUTE, 0);
+        cal.set(java.util.Calendar.SECOND, 0);
+        cal.set(java.util.Calendar.MILLISECOND, 0);
+        Date hariIni = cal.getTime();
+
+        spnTanggalBerangkat.setModel(new SpinnerDateModel(hariIni, hariIni, null, java.util.Calendar.DAY_OF_MONTH));
         spnTanggalBerangkat.setEditor(new JSpinner.DateEditor(spnTanggalBerangkat, "dd/MM/yyyy"));
-        cmbJumlahPenumpang.setModel(new DefaultComboBoxModel<>(new String[]{"1 penumpang", "2 penumpang", "3 penumpang", "4 penumpang"}));
+        cmbJumlahPenumpang.setModel(new DefaultComboBoxModel<>(new String[]{"1 penumpang", "2 penumpang", "3 penumpang", "4 penumpang", "5 penumpang"}));
 
         gridInputs.add(buatFieldGroup("STASIUN ASAL", cmbStasiunAsal));
         gridInputs.add(buatFieldGroup("STASIUN TUJUAN", cmbStasiunTujuan));
@@ -237,7 +244,7 @@ public class MenuUtamaView extends javax.swing.JFrame {
         gridInfoProfil.add(lblTeleponAkun);
         gridInfoProfil.add(lblSaldoAkun);
 
-        btnLogoutAkun.setText("Keluar / LogOut");
+        btnLogoutAkun.setText("LogOut");
         btnLogoutAkun.setBackground(new Color(198, 40, 40));
         btnLogoutAkun.setForeground(Color.WHITE);
         btnLogoutAkun.setFont(new Font("Verdana", Font.BOLD, 13));

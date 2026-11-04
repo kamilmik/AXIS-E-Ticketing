@@ -10,16 +10,18 @@ public class AdminController {
     private final AdminDAO adminDAO = new AdminDAO();
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-     
-    // 1. FUNGSI DASHBOARD (STATISTIK)
-     
+    // =========================================================================
+    // 1. FUNGSI DASHBOARD & HELPER
+    // =========================================================================
     public int[] dapatkanStatistik() {
         return adminDAO.getDashboardStats();
     }
 
-    // FUNGSI HELPER: Ekstrak ID dari ComboBox (Contoh: "12 - Bogor" -> 12)
+    // Helper: Ekstrak ID dari ComboBox
     private int ekstrakIdCombo(String comboValue) {
-        if (comboValue == null || comboValue.isEmpty()) return -1;
+        if (comboValue == null || comboValue.isEmpty() || !comboValue.contains(" - ") || comboValue.startsWith("--")) {
+            return -1;
+        }
         return Integer.parseInt(comboValue.split(" - ")[0].trim());
     }
 
@@ -27,9 +29,13 @@ public class AdminController {
         return adminDAO.getComboStasiun(kategoriLayanan);
     }
 
-     
-    // 2. FUNGSI MENU JADWAL ANTARKOTA
-     
+    public List<String> dapatkanStasiunTujuanTapOut(int idStasiunAsal) {
+        return adminDAO.getComboStasiunTujuanTapOut(idStasiunAsal);
+    }
+
+    // =========================================================================
+    // 2. FUNGSI MENU JADWAL ANTARKOTA (Validasi Waktu)
+    // =========================================================================
     public void muatTabelJadwal(DefaultTableModel model) {
         adminDAO.loadJadwalAntarkota(model);
     }
@@ -37,10 +43,17 @@ public class AdminController {
     public String tambahJadwal(String nama, String asalStr, String tujuanStr, Date brgktDate, Date tibaDate, String hargaStr, String gerbongStr, String kursiStr) {
         try {
             if (nama.isEmpty() || asalStr == null || tujuanStr == null) return "Nama kereta dan stasiun wajib diisi!";
-            
             int asal = ekstrakIdCombo(asalStr);
             int tujuan = ekstrakIdCombo(tujuanStr);
             if (asal == tujuan) return "Stasiun asal dan tujuan tidak boleh sama!";
+
+            // Validasi Waktu
+            if (brgktDate.before(new Date(System.currentTimeMillis() - 60000))) {
+                return "Waktu berangkat tidak boleh di masa lalu!";
+            }
+            if (!tibaDate.after(brgktDate)) {
+                return "Waktu tiba harus setelah waktu berangkat!";
+            }
 
             String brgkt = sdf.format(brgktDate);
             String tiba = sdf.format(tibaDate);
@@ -48,8 +61,7 @@ public class AdminController {
             int gerbong = Integer.parseInt(gerbongStr);
             int kursi = Integer.parseInt(kursiStr);
 
-            boolean sukses = adminDAO.insertJadwal(nama, asal, tujuan, brgkt, tiba, harga, gerbong, kursi);
-            return sukses ? "SUCCESS" : "Gagal menyimpan jadwal ke database.";
+            return adminDAO.insertJadwal(nama, asal, tujuan, brgkt, tiba, harga, gerbong, kursi) ? "SUCCESS" : "Gagal menyimpan jadwal.";
         } catch (NumberFormatException e) {
             return "Format angka salah! Pastikan harga, gerbong, dan kursi berisi angka.";
         }
@@ -57,25 +69,34 @@ public class AdminController {
 
     public String updateJadwal(int idJadwal, String nama, String asalStr, String tujuanStr, Date brgktDate, Date tibaDate, String hargaStr, String gerbongStr, String kursiStr) {
         if (idJadwal == -1) return "Pilih data jadwal di tabel terlebih dahulu!";
+        
+        // Validasi Waktu
+        if (brgktDate.before(new Date(System.currentTimeMillis() - 60000))) {
+            return "Waktu berangkat tidak boleh diubah ke masa lalu!";
+        }
+        if (!tibaDate.after(brgktDate)) {
+            return "Waktu tiba harus setelah waktu berangkat!";
+        }
+        
         try {
             int asal = ekstrakIdCombo(asalStr);
             int tujuan = ekstrakIdCombo(tujuanStr);
+            if (asal == tujuan) return "Stasiun asal dan tujuan tidak boleh sama!";
             String brgkt = sdf.format(brgktDate);
             String tiba = sdf.format(tibaDate);
             double harga = Double.parseDouble(hargaStr);
             int gerbong = Integer.parseInt(gerbongStr);
             int kursi = Integer.parseInt(kursiStr);
 
-            boolean sukses = adminDAO.updateJadwal(idJadwal, nama, asal, tujuan, brgkt, tiba, harga, gerbong, kursi);
-            return sukses ? "SUCCESS" : "Gagal mengupdate jadwal.";
+            return adminDAO.updateJadwal(idJadwal, nama, asal, tujuan, brgkt, tiba, harga, gerbong, kursi) ? "SUCCESS" : "Gagal mengupdate jadwal.";
         } catch (NumberFormatException e) {
             return "Format angka tidak valid!";
         }
     }
 
-     
+    // =========================================================================
     // 3. FUNGSI MENU KELOLA STASIUN & TARIF
-     
+    // =========================================================================
     public void muatTabelStasiun(DefaultTableModel model) {
         adminDAO.loadStasiun(model);
     }
@@ -119,31 +140,33 @@ public class AdminController {
         }
     }
 
-     
+    // =========================================================================
     // 4. FUNGSI VERIFIKASI TAP-OUT
-     
+    // =========================================================================
     public void muatTabelTapOut(DefaultTableModel model) {
         adminDAO.loadTapInKomuter(model);
     }
 
     public double hitungEstimasiTarif(int idStasiunAsal, String stasiunTujuanStr) {
-        if (idStasiunAsal == -1 || stasiunTujuanStr == null) return 0.0;
         int idTujuan = ekstrakIdCombo(stasiunTujuanStr);
+        if (idStasiunAsal == -1 || idTujuan == -1) return 0.0;
         return adminDAO.getHargaTarifKomuter(idStasiunAsal, idTujuan);
     }
 
     public String prosesVerifikasiTapOut(String idPerjalananStr, String nikFull, String stasiunKeluarStr, double tarif, String kodeAdmin) {
-        if (idPerjalananStr.isEmpty()) return "Pilih penumpang dari tabel!";
-        int idPerjalanan = Integer.parseInt(idPerjalananStr);
-        String nik = nikFull.split(" - ")[0].trim(); // Ambil NIK saja
+        if (idPerjalananStr.isEmpty()) return "Pilih penumpang dari tabel terlebih dahulu!";
         int idKeluar = ekstrakIdCombo(stasiunKeluarStr);
-        
+        if (idKeluar == -1) return "Silakan pilih Stasiun Akhir terlebih dahulu!";
+        if (tarif <= 0) return "Rute tarif komuter tidak ditemukan untuk stasiun ini!";
+
+        int idPerjalanan = Integer.parseInt(idPerjalananStr);
+        String nik = nikFull.split(" - ")[0].trim();
         return adminDAO.verifikasiTapOut(idPerjalanan, nik, idKeluar, tarif, kodeAdmin);
     }
 
-     
+    // =========================================================================
     // 5. FUNGSI MONITORING PEMESANAN
-     
+    // =========================================================================
     public void muatMonitoring(DefaultTableModel model, String keyword) {
         adminDAO.loadMonitoringPemesanan(model, keyword);
     }

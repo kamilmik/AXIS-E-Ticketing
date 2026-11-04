@@ -35,11 +35,14 @@ public class MenuUtamaController {
     public List<JadwalAntarkota> cariJadwal(String asalStr, String tujuanStr, Date tanggal) {
         int idAsal = ekstrakIdStasiun(asalStr);
         int idTujuan = ekstrakIdStasiun(tujuanStr);
-        if (idAsal == -1 || idTujuan == -1 || idAsal == idTujuan) {
-            return null;
+        if (idAsal == -1 || idTujuan == -1 || idAsal == idTujuan) return null;
+
+        String tglPilih = sdfTanggal.format(tanggal);
+        String tglHariIni = sdfTanggal.format(new Date());
+        if (tglPilih.compareTo(tglHariIni) < 0) {
+            return java.util.Collections.emptyList();
         }
-        String tglStr = sdfTanggal.format(tanggal);
-        return penumpangDAO.cariJadwalAntarkota(idAsal, idTujuan, tglStr);
+        return penumpangDAO.cariJadwalAntarkota(idAsal, idTujuan, tglPilih);
     }
 
     public String topUpEwallet(String nominalStr, String metode, String rekeningDummy) {
@@ -48,9 +51,17 @@ public class MenuUtamaController {
         if (nominalStr == null || nominalStr.isEmpty() || rekeningDummy == null || rekeningDummy.isEmpty()) {
             return "Nominal dan nomor rekening wajib diisi!";
         }
+        if (nominalStr.length() > 7) {
+            return "Nominal terlalu besar! Maksimal Top-Up Rp 2.000.000 per transaksi.";
+        }
         try {
             double nominal = Double.parseDouble(nominalStr);
             if (nominal < 10000) return "Minimal Top-Up adalah Rp 10.000!";
+            if (nominal > 2000000) return "Maksimal Top-Up adalah Rp 2.000.000 per transaksi!";
+            if ((p.getSaldoEwallet() + nominal) > 10000000) {
+                return "Gagal! Batas maksimal saldo AXIS E-Wallet adalah Rp 10.000.000.";
+            }
+
             boolean sukses = penumpangDAO.prosesTopUp(p.getNikNomorPassport(), nominal, metode);
             if (sukses) {
                 sinkronkanSessionPenumpang();

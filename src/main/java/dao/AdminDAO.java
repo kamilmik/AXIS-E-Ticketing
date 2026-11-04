@@ -382,4 +382,24 @@ public class AdminDAO {
             e.printStackTrace();
         }
     }
+    
+    public List<String> getComboStasiunTujuanTapOut(int idStasiunAsal) {
+        List<String> list = new java.util.ArrayList<>();
+        String sql = "SELECT s.id_stasiun, s.nama_stasiun, s.kode_kota "
+                   + "FROM tarif_komuter tk "
+                   + "JOIN stasiun s ON tk.stasiun_id_tujuan = s.id_stasiun "
+                   + "WHERE tk.stasiun_id_asal = ? AND tk.stasiun_id_tujuan != ? "
+                   + "ORDER BY s.nama_stasiun ASC";
+        try (java.sql.PreparedStatement ps = util.DBConnection.getConnection().prepareStatement(sql)) {
+            ps.setInt(1, idStasiunAsal);
+            ps.setInt(2, idStasiunAsal);
+            java.sql.ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(rs.getInt("id_stasiun") + " - " + rs.getString("nama_stasiun") + " (" + rs.getString("kode_kota") + ")");
+            }
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }
