@@ -1,0 +1,1 @@
+semoga ga ilang lagi..
