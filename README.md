@@ -29,11 +29,9 @@ Axis E-Ticketing adalah sistem aplikasi berbasis Java dengan database terpusat y
 
 | Kategori | Teknologi |
 |----------|-----------|
-| **Bahasa Pemrograman** | Java / Python / dll. |
-| **Database** | MySQL / SQLite / PostgreSQL |
-| **Framework** | JavaFX / Swing / Spring / dll. |
-| **Library** | JDBC, iText, JFreeChart, dll. |
-| **Tools** | NetBeans / IntelliJ / VS Code, Git, GitHub |
+| **Bahasa Pemrograman** | Java with Maven|
+| **Database** | MySQL |
+| **Tools** | NetBeans, Laragon, Git, GitHub |
 
 ---
 
@@ -42,27 +40,32 @@ Axis E-Ticketing adalah sistem aplikasi berbasis Java dengan database terpusat y
 ### 1. Flowchart
 
 **A. Login/Register**
+
 <img width="934" height="1350" alt="CapstoneAxis-Login_Register drawio (1)" src="https://github.com/user-attachments/assets/26c84ce7-b3fd-4abe-b146-ea62643a937e" />
 
 
 Alur program diawali dari Menu Login yang menyediakan pilihan akses bagi pengguna. Pada akses penumpang, pengguna menginput email dan password yang divalidasi ke database untuk masuk ke Menu Utama, dengan proteksi sleep 5 menit jika gagal 3 kali; sedangkan calon pengguna baru dapat memilih menu registrasi untuk mendaftarkan email, password, nomor telepon, dan NIK hingga akun berhasil dibuat. Bagi pihak pengelola, opsi login admin memerlukan verifikasi kode karyawan dan password untuk membuka Dashboard Admin, atau pengguna dapat memilih keluar dari sistem untuk mengakhiri sesi program secara keseluruhan.
 
 **B. Menu Utama**
+
 <img width="1536" height="2320" alt="CapstoneAxis-Menu Utama drawio (1)" src="https://github.com/user-attachments/assets/58aaf937-3aa8-46de-99e1-01f43464f564" />
 
 Alur program pada flowchart Menu Utama menyediakan navigasi bagi penumpang untuk mengakses fitur utama seperti Menu Membeli Tiket, Menu Riwayat Tiket, Menu Akun, atau LogOut. Pada fitur pembelian tiket, penumpang dapat memilih tiga jenis layanan: E-ticket Antar Kota yang melibatkan pemilihan stasiun asal-tujuan, tanggal, jadwal kereta, pengisian serta validasi data penumpang, penentuan kursi otomatis, hingga proses pembayaran menggunakan saldo e-wallet untuk menerbitkan tiket yang masuk ke riwayat; Isi Saldo Axis E-Wallet yang memproses penginputan nominal serta metode pembayaran hingga pembaruan saldo dan riwayat top-up; serta Layanan Komuter yang menangani proses tap-in stasiun awal (pembuatan QR code), verifikasi admin, pembaruan stasiun akhir, penentuan tarif potongan, hingga pemotongan saldo e-wallet penumpang. Jika saldo e-wallet tidak mencukupi saat transaksi tiket maupun komuter, sistem akan mengarahkan pengguna untuk melakukan top-up saldo terlebih dahulu sebelum menyelesaikan prosesnya.
 
 **C. Dashboard Admin**
+
 <img width="2651" height="2159" alt="CapstoneAxis-DashBoard Admin drawio (1)" src="https://github.com/user-attachments/assets/9666b248-fad1-4bdb-a137-5d5f0d3554a7" />
 
 Alur program pada Dashboard Admin diawali dengan menampilkan ringkasan data total penumpang hari ini (antarkota, komuter, maupun keduanya) beserta jumlah keberangkatan, sebelum admin memilih lima menu navigasi utama. Pada menu Kelola Jadwal Antarkota, Kelola Stasiun, dan Kelola Tarif Stasiun, admin dapat melakukan operasi pembaruan data (seperti penambahan atau pengubahan data kereta, stasiun, serta tarif) yang semuanya melalui tahap validasi input sebelum tersimpan ke dalam database masing-masing. Sementara itu, opsi Monitoring Pemesanan memungkinkan admin memantau riwayat data pemesanan tiket, dan menu Verifikasi Tap Out Komuter digunakan untuk memproses verifikasi penumpang yang keluar, termasuk pengecekan kecukupan saldo e-wallet, pemotongan saldo sesuai tarif komuter, serta pembaruan status data perjalanan penumpang di database.
 
 **D. Riwayat Tiket**
+
 <img width="599" height="802" alt="CapstoneAxis-Riwayat Tiket drawio (1)" src="https://github.com/user-attachments/assets/3850206b-1df7-4324-99ee-66190b184d62" />
 
 Alur program pada flowchart Menu Riwayat Tiket diawali dengan masuk ke Menu Riwayat AntarKota, di mana pengguna dapat memilih untuk melihat Riwayat AntarKota yang mengambil data dari database Pemesanan untuk menampilkan riwayat pemesanan antarkota beserta status pembayarannya, atau beralih ke Menu Riwayat Komuter yang mengambil data dari database Perjalanan Komuter untuk menyajikan riwayat perjalanan komuter. Setelah informasi riwayat ditampilkan, pengguna dihadapkan pada opsi navigasi pindah halaman; jika pengguna memilih Ya, sistem akan mengarahkan pengguna kembali ke Menu Utama, sedangkan jika memilih Tidak, alur akan berputar kembali ke tampilan awal Menu Riwayat AntarKota.
 
 **E. Akun** 
+
 <img width="502" height="816" alt="CapstoneAxis-Akun drawio (1)" src="https://github.com/user-attachments/assets/5f896c25-a7d2-4a71-87ef-01717c8568b8" />
 
 Alur program pada flowchart Menu Akun diawali dengan mengakses database Pengguna.Penumpang untuk menampilkan profil pengguna berupa nama penumpang, email, nomor telepon, dan saldo e-wallet. Selanjutnya, sistem mengambil data dari database Riwayat_topup untuk menyajikan tabel riwayat pengisian saldo yang telah dilakukan oleh pengguna. Setelah seluruh informasi akun dan riwayat top-up ditampilkan, pengguna dihadapkan pada opsi navigasi pindah halaman; jika memilih YES, pengguna akan diarahkan kembali ke Menu Utama, sedangkan jika memilih NO, alur program akan tetap bertahan di halaman Menu Akun.
@@ -77,9 +80,11 @@ Sistem E-Ticketing AXIS melibatkan dua aktor utama: Penumpang yang berwenang men
 ### 3. Entity Relationship Diagram (ERD)
 
 **A. Logical ERD**
+
 <img width="1593" height="651" alt="image" src="https://github.com/user-attachments/assets/5023cdde-dc29-4def-8b3d-29212c75bd7b" />
 
 **B. Relational ERD**
+
 <img width="1600" height="711" alt="image" src="https://github.com/user-attachments/assets/965f8581-2ac5-4c1c-b33b-29e0aa9d5f0c" />
 
 Sistem E-Ticketing AXIS dibangun di atas entitas utama pengguna yang terspesialisasi menjadi dua peran, yaitu admin dan penumpang. Entitas penumpang berelasi langsung dengan riwayat_topup untuk mencatat transaksi pengisian saldo e-wallet, serta dapat melakukan transaksi pemesanan yang diawasi oleh admin. Dari pemesanan tersebut, sistem menerbitkan entitas tiket yang terhubung ke jadwal_antarkota. Keberangkatan dan tujuan pada jadwal_antarkota ini mengacu pada entitas stasiun. Selain itu, penumpang juga berinteraksi dengan tabel perjalanan_komuter yang mencatat aktivitas keberangkatan dan kedatangan antar stasiun, dengan penentuan harga rute yang diatur melalui entitas tarif_komuter.
