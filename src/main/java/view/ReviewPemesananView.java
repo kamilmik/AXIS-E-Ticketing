@@ -1,15 +1,20 @@
 package view;
 
 import controller.PemesananController;
+import controller.SessionManager;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import model.JadwalAntarkota;
 
 public class ReviewPemesananView extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ReviewPemesananView.class.getName());
     private final PemesananController controller;
     private DefaultTableModel modelReview;
+    private JLabel lblTotalTagihan;
+    private JLabel lblSaldoUser;
+    private JLabel lblInfoKereta;
 
     public ReviewPemesananView() {
         this(new PemesananController());
@@ -23,27 +28,45 @@ public class ReviewPemesananView extends javax.swing.JFrame {
 
         rakitTampilan();
         setupEvents();
+        muatDataReviewDanTagihan();
+    }
+
+    private void muatDataReviewDanTagihan() {
         this.controller.isiTabelReview(modelReview);
+        JadwalAntarkota j = controller.getJadwalTerpilih();
+        if (j != null) {
+            lblInfoKereta.setText(String.format("Kereta: %s  |  Berangkat: %s  |  Tiba: %s  |  Harga/Pax: Rp %,.0f",
+                j.getNamaKereta(), j.getWaktuBerangkat(), j.getWaktuTiba(), j.getHargaDasar()));
+        }
+        lblTotalTagihan.setText(String.format("Rp %,.0f", controller.hitungTotalBayar()));
+        if (SessionManager.getCurrentPenumpang() != null) {
+            lblSaldoUser.setText(String.format("Saldo Axis E-Wallet Anda: Rp %,.0f", SessionManager.getCurrentPenumpang().getSaldoEwallet()));
+        }
     }
 
     private void rakitTampilan() {
         getContentPane().removeAll();
-        getContentPane().setLayout(new BorderLayout(0, 20));
+        getContentPane().setLayout(new BorderLayout(0, 15));
         getContentPane().setBackground(new Color(244, 246, 245));
 
         JPanel pnlHeader = new JPanel(new BorderLayout());
         pnlHeader.setBackground(new Color(7, 59, 39));
-        pnlHeader.setPreferredSize(new Dimension(1200, 110));
-        pnlHeader.setBorder(BorderFactory.createEmptyBorder(25, 70, 25, 70));
+        pnlHeader.setPreferredSize(new Dimension(1200, 95));
+        pnlHeader.setBorder(BorderFactory.createEmptyBorder(20, 60, 20, 60));
 
-        JLabel lblTitle = new JLabel("Review Pemesanan Tiket");
-        lblTitle.setFont(new Font("Verdana", Font.BOLD, 26));
+        JLabel lblTitle = new JLabel("2. Review Pesanan & Pembayaran");
+        lblTitle.setFont(new Font("Verdana", Font.BOLD, 24));
         lblTitle.setForeground(Color.WHITE);
         pnlHeader.add(lblTitle, BorderLayout.WEST);
 
         JPanel pnlBody = new JPanel(new BorderLayout(0, 20));
         pnlBody.setOpaque(false);
-        pnlBody.setBorder(BorderFactory.createEmptyBorder(20, 70, 40, 70));
+        pnlBody.setBorder(BorderFactory.createEmptyBorder(15, 60, 30, 60));
+
+        lblInfoKereta = new JLabel("Detail Jadwal Kereta");
+        lblInfoKereta.setFont(new Font("Verdana", Font.BOLD, 14));
+        lblInfoKereta.setForeground(new Color(7, 59, 39));
+        lblInfoKereta.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
 
         modelReview = new DefaultTableModel(
             new String[]{"NIK / Paspor", "Nama Penumpang", "Kereta", "Gerbong (Otomatis)", "Nomor Kursi (Otomatis)"}, 0
@@ -55,25 +78,54 @@ public class ReviewPemesananView extends javax.swing.JFrame {
         tblReviewTiket.setFont(new Font("Verdana", Font.PLAIN, 14));
         tblReviewTiket.getTableHeader().setFont(new Font("Verdana", Font.BOLD, 14));
 
-        JPanel pnlBottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
-        pnlBottom.setOpaque(false);
+        JPanel cardPembayaran = new JPanel(new BorderLayout(30, 10));
+        cardPembayaran.setBackground(Color.WHITE);
+        cardPembayaran.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 225, 222), 1, true),
+            BorderFactory.createEmptyBorder(25, 35, 25, 35)
+        ));
 
-        btnUlangiInput.setText("Kembali ke Beranda");
+        JPanel pnlInfoBayar = new JPanel(new GridLayout(3, 1, 0, 6));
+        pnlInfoBayar.setOpaque(false);
+        JLabel lblMetode = new JLabel("Metode Pembayaran: AXIS E-Wallet");
+        lblMetode.setFont(new Font("Verdana", Font.BOLD, 16));
+        lblMetode.setForeground(new Color(7, 59, 39));
+
+        lblTotalTagihan = new JLabel("Rp 0");
+        lblTotalTagihan.setFont(new Font("Verdana", Font.BOLD, 30));
+        lblTotalTagihan.setForeground(new Color(198, 40, 40));
+
+        lblSaldoUser = new JLabel("Saldo Axis E-Wallet Anda: Rp 0");
+        lblSaldoUser.setFont(new Font("Verdana", Font.BOLD, 14));
+        lblSaldoUser.setForeground(new Color(0, 108, 59));
+
+        pnlInfoBayar.add(lblMetode);
+        pnlInfoBayar.add(lblTotalTagihan);
+        pnlInfoBayar.add(lblSaldoUser);
+
+        JPanel pnlActionButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 20));
+        pnlActionButtons.setOpaque(false);
+
+        btnUlangiInput.setText("Batalkan Pesanan");
         btnUlangiInput.setFont(new Font("Verdana", Font.BOLD, 14));
-        btnUlangiInput.setPreferredSize(new Dimension(250, 48));
-        btnUlangiInput.setBackground(new Color(220, 225, 222));
+        btnUlangiInput.setPreferredSize(new Dimension(200, 48));
+        btnUlangiInput.setBackground(new Color(225, 230, 228));
 
-        btnBenarLanjut.setText("Lanjut Pembayaran");
+        btnBenarLanjut.setText("Bayar Sekarang (Potong Saldo)");
         btnBenarLanjut.setFont(new Font("Verdana", Font.BOLD, 14));
-        btnBenarLanjut.setPreferredSize(new Dimension(380, 48));
+        btnBenarLanjut.setPreferredSize(new Dimension(310, 48));
         btnBenarLanjut.setBackground(new Color(0, 108, 59));
         btnBenarLanjut.setForeground(Color.WHITE);
 
-        pnlBottom.add(btnUlangiInput);
-        pnlBottom.add(btnBenarLanjut);
+        pnlActionButtons.add(btnUlangiInput);
+        pnlActionButtons.add(btnBenarLanjut);
 
+        cardPembayaran.add(pnlInfoBayar, BorderLayout.WEST);
+        cardPembayaran.add(pnlActionButtons, BorderLayout.EAST);
+
+        pnlBody.add(lblInfoKereta, BorderLayout.NORTH);
         pnlBody.add(new JScrollPane(tblReviewTiket), BorderLayout.CENTER);
-        pnlBody.add(pnlBottom, BorderLayout.SOUTH);
+        pnlBody.add(cardPembayaran, BorderLayout.SOUTH);
 
         getContentPane().add(pnlHeader, BorderLayout.NORTH);
         getContentPane().add(pnlBody, BorderLayout.CENTER);
@@ -86,8 +138,26 @@ public class ReviewPemesananView extends javax.swing.JFrame {
         for (java.awt.event.ActionListener al : btnUlangiInput.getActionListeners()) btnUlangiInput.removeActionListener(al);
 
         btnBenarLanjut.addActionListener(e -> {
-            new PembayaranView(controller).setVisible(true);
-            this.dispose();
+            int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Konfirmasi pembayaran sebesar " + lblTotalTagihan.getText() + " menggunakan Axis E-Wallet?",
+                "Konfirmasi Pembayaran",
+                JOptionPane.YES_NO_OPTION
+            );
+            if (confirm != JOptionPane.YES_OPTION) return;
+
+            String res = controller.prosesBayar();
+            if (res.equals("SUCCESS")) {
+                JOptionPane.showMessageDialog(this, "Pembayaran Berhasil! Tiket Anda telah terbit");
+                new MenuUtamaView().setVisible(true);
+                this.dispose();
+            } else if (res.equals("SALDO_KURANG")) {
+                JOptionPane.showMessageDialog(this, "Saldo Axis E-Wallet tidak mencukupi, silakan Top-Up terlebih dahulu!", "Saldo Kurang", JOptionPane.WARNING_MESSAGE);
+                new MenuUtamaView().setVisible(true);
+                this.dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, res, "Gagal Membayar", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         btnUlangiInput.addActionListener(e -> {
@@ -111,6 +181,10 @@ public class ReviewPemesananView extends javax.swing.JFrame {
         lblJudulPenumpang = new javax.swing.JLabel();
         btnBenarLanjut = new javax.swing.JButton();
         btnUlangiInput = new javax.swing.JButton();
+        lblJudulPenumpang1 = new javax.swing.JLabel();
+        lblJudulPenumpang2 = new javax.swing.JLabel();
+        lblJudulPenumpang3 = new javax.swing.JLabel();
+        lblJudulPenumpang4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -131,12 +205,28 @@ public class ReviewPemesananView extends javax.swing.JFrame {
 
         lblJudulPenumpang.setFont(new java.awt.Font("Verdana", 1, 18)); // NOI18N
         lblJudulPenumpang.setForeground(new java.awt.Color(0, 0, 0));
-        lblJudulPenumpang.setText("Review Pesanan");
+        lblJudulPenumpang.setText("2. Review Pesanan & Pembayaran");
 
-        btnBenarLanjut.setText("CHECKOUT");
+        btnBenarLanjut.setText("CheckOut");
         btnBenarLanjut.addActionListener(this::btnBenarLanjutActionPerformed);
 
-        btnUlangiInput.setText("Kembali");
+        btnUlangiInput.setText("Batalkan Pesanan");
+
+        lblJudulPenumpang1.setFont(new java.awt.Font("Verdana", 1, 12)); // NOI18N
+        lblJudulPenumpang1.setForeground(new java.awt.Color(0, 0, 0));
+        lblJudulPenumpang1.setText("Saldo Axis Anda: Rp. ");
+
+        lblJudulPenumpang2.setFont(new java.awt.Font("Verdana", 1, 18)); // NOI18N
+        lblJudulPenumpang2.setForeground(new java.awt.Color(204, 0, 51));
+        lblJudulPenumpang2.setText("Rp. ");
+
+        lblJudulPenumpang3.setFont(new java.awt.Font("Verdana", 1, 12)); // NOI18N
+        lblJudulPenumpang3.setForeground(new java.awt.Color(0, 0, 0));
+        lblJudulPenumpang3.setText("Detail kereta");
+
+        lblJudulPenumpang4.setFont(new java.awt.Font("Verdana", 1, 12)); // NOI18N
+        lblJudulPenumpang4.setForeground(new java.awt.Color(0, 0, 0));
+        lblJudulPenumpang4.setText("Metode Pembayaran: AXIS E-Wallet");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -149,27 +239,47 @@ public class ReviewPemesananView extends javax.swing.JFrame {
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 782, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(46, 46, 46)
-                        .addComponent(lblJudulPenumpang, javax.swing.GroupLayout.PREFERRED_SIZE, 644, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(72, Short.MAX_VALUE))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblJudulPenumpang1, javax.swing.GroupLayout.PREFERRED_SIZE, 644, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblJudulPenumpang, javax.swing.GroupLayout.PREFERRED_SIZE, 644, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblJudulPenumpang2, javax.swing.GroupLayout.PREFERRED_SIZE, 387, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblJudulPenumpang4, javax.swing.GroupLayout.PREFERRED_SIZE, 644, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(87, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
                 .addComponent(btnUlangiInput)
                 .addGap(18, 18, 18)
                 .addComponent(btnBenarLanjut)
                 .addGap(100, 100, 100))
+            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createSequentialGroup()
+                    .addGap(56, 56, 56)
+                    .addComponent(lblJudulPenumpang3, javax.swing.GroupLayout.PREFERRED_SIZE, 644, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(234, Short.MAX_VALUE)))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(17, 17, 17)
                 .addComponent(lblJudulPenumpang, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 439, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(82, 82, 82)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 284, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnBenarLanjut)
                     .addComponent(btnUlangiInput))
-                .addContainerGap(45, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblJudulPenumpang4, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblJudulPenumpang2, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblJudulPenumpang1, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createSequentialGroup()
+                    .addGap(62, 62, 62)
+                    .addComponent(lblJudulPenumpang3, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(496, Short.MAX_VALUE)))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -221,6 +331,10 @@ public class ReviewPemesananView extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblJudulPenumpang;
+    private javax.swing.JLabel lblJudulPenumpang1;
+    private javax.swing.JLabel lblJudulPenumpang2;
+    private javax.swing.JLabel lblJudulPenumpang3;
+    private javax.swing.JLabel lblJudulPenumpang4;
     private javax.swing.JTable tblReviewTiket;
     // End of variables declaration//GEN-END:variables
 }
