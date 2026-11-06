@@ -41,25 +41,25 @@ Seluruh alur operasi ini dibangun di atas arsitektur MVC (Model-View-Controller)
 
 ## Fitur Utama Program
 
-1. **Autentikasi Multi-Peran & Validasi Keamanan (*Role-Based Auth*)**
-   - Login terpisah antara **Penumpang** (menggunakan Email & Password) dan **Admin** (menggunakan Kode Karyawan & Password).
-   - Validasi registrasi ketat meliputi pengecekan format email (`@` dan domain valid), validasi numerik NIK & nomor telepon, serta pencegahan duplikasi akun.
-2. **Ekosistem Pembayaran Digital (AXIS E-Wallet)**
-   - Fitur *Top-Up* saldo instan menggunakan berbagai metode pembayaran (*Virtual Account*, *QRIS*, Minimarket) dengan batas keamanan nominal transaksi (`Rp 10.000` – `Rp 2.000.000` per transaksi dan limit saldo maksimal `Rp 10.000.000`).
-   - Pencatatan otomatis ke dalam tabel **Riwayat Top-Up** di halaman profil penumpang.
-3. **Pemesanan Tiket Kereta Antarkota Terintegrasi**
+1. **Autentikasi Multi-Role**
+   - Login terpisah antara Penumpang dan Admin.
+   - login user menggunakan Email dan Password, sementrara Admin Menggunakan kode karyawan.
+2. **Pembayaran Digital AXIS E-Wallet**
+   - Fitur Top-Up saldo instan menggunakan berbagai metode pembayaran (dummy) dengan batas keamanan nominal transaksi (Rp 10.000 – Rp 2.000.000 per transaksi dan limit saldo maksimal Rp 10.000.000).
+   - Pencatatan otomatis ke dalam Riwayat Top-Up di halaman profil penumpang.
+3. **Pemesanan Tiket Kereta Antarkota**
    - Pencarian jadwal berdasarkan stasiun asal, stasiun tujuan, tanggal keberangkatan (dilengkapi penguncian tanggal agar tidak bisa memilih masa lalu), dan jumlah penumpang.
-   - Pengisian detail penumpang interaktif dilengkapi fitur *auto-fill* **"Penumpang 1 sama dengan pemesan"** dan *pop-up dialog* ringkas.
-   - **Auto-Seat Allocation**: Sistem secara otomatis mengalokasikan nomor gerbong dan nomor kursi berurutan bagi setiap penumpang.
-   - Pembayaran langsung memotong saldo AXIS E-Wallet menggunakan mekanisme *Database Transaction* (`commit` & `rollback`).
-4. **Layanan Kereta Komuter (*Tap-In Gate* & *Deterministic Barcode*)**
-   - Penumpang melakukan *Tap-In* di stasiun awal dan sistem men-*generate* visual garis **Barcode / Kode Unik Gate** (contoh: `KMT-8A3F19C2-001`).
-   - **State-Locking Mechanism**: Selama perjalanan komuter belum diverifikasi *Tap-Out* oleh Admin, kode *barcode* penumpang dikunci tetap sama dan penumpang tidak dapat melakukan *Tap-In* ganda.
-5. **Dashboard & Manajemen Operasional Admin**
-   - **Kartu Statistik Real-Time**: Menampilkan jumlah penumpang antarkota hari ini, penumpang komuter hari ini, total gabungan, serta jumlah keberangkatan kereta.
-   - **CRUD Data Master + Filter & Sorting**: Kelola Jadwal Antarkota (dilengkapi *sorting* waktu keberangkatan terdekat/terjauh), Kelola Stasiun (dilengkapi filter kategori layanan: *Antarkota*, *Komuter*, *Keduanya*), dan Kelola Tarif Komuter.
-   - **Verifikasi Tap-Out Komuter Dinamis**: Menyaring otomatis daftar stasiun keluar berdasarkan ketersediaan rute pada tabel `tarif_komuter`, mencegah *Tap-Out* di stasiun yang sama dengan stasiun *Tap-In*, dan otomatis memotong saldo E-Wallet penumpang.
-   - **Monitoring Pemesanan & Tiket**: Pencarian pemesanan berdasarkan Kode Booking atau NIK, pengurutan waktu transaksi, serta penampilan rincian tiket per kode booking.
+   - Pengisian detail penumpang.
+   - Sistem secara otomatis mengalokasikan nomor gerbong dan nomor kursi bagi setiap penumpang.
+   - Pembayaran langsung memotong saldo AXIS E-Wallet.
+4. **Layanan Kereta Komuter Tap-In Gate**
+   - Penumpang melakukan Tap-In di stasiun awal dan sistem men-*generate visual garis Barcode / Kode Unik Gate (Tentunya karena keterbatasan resources teknologi, fitur tap-in masih berupa dummy dan digantikan dengan peran dropdown memilih stasiun dan di verifikasi admin).
+   - Selama perjalanan komuter belum diverifikasi Tap-Out oleh Admin, Kode penumpang dikunci tetap sama dan penumpang tidak dapat melakukan Tap-In ganda.
+5. **Dashboard Admin**
+   - Menampilkan jumlah penumpang antarkota hari ini, penumpang komuter hari ini, total gabungan, serta jumlah keberangkatan kereta.
+   - CRUD Data: Kelola Jadwal Antarkota, Kelola Stasiun, dan Kelola Tarif Komuter.
+   - Verifikasi Tap-Out: Menyaring otomatis daftar stasiun keluar berdasarkan ketersediaan rute pada tabel tarif_komuter, mencegah Tap-Out di stasiun yang sama dengan stasiun Tap-In, dan otomatis memotong saldo E-Wallet penumpang.
+   - Monitoring Pemesanan: Pencarian pemesanan berdasarkan Kode Booking atau NIK, pengurutan waktu transaksi, serta penampilan rincian tiket per kode booking.
 
 
 ---
@@ -78,7 +78,7 @@ Seluruh alur operasi ini dibangun di atas arsitektur MVC (Model-View-Controller)
 
 ---
 
-## 📐 Perancangan Sistem
+## Perancangan Sistem
 
 ### 1. Flowchart
 
@@ -290,9 +290,9 @@ public class PerjalananKomuter {
 
 ### 4. Polymorphism 
 
-Polimorfisme diterapkan baik dalam bentuk **Method Overriding** (*Runtime Polymorphism*) maupun **Constructor/Method Overloading** (*Compile-time Polymorphism*):
-1. **Method Overriding (`@Override`)**: Digunakan pada kustomisasi komponen GUI dan model tabel, seperti meng-*override* method `isCellEditable()` pada `DefaultTableModel` agar sel tabel bersifat *read-only*, serta meng-*override* `paintComponent(Graphics g)` pada `KomuterView` untuk menggambar garis-garis visual *barcode* secara dinamis.
-2. **Constructor Overloading**: Digunakan pada class tampilan seperti `PilihJadwalView` dan `ReviewPemesananView` yang memiliki lebih dari satu *constructor* dengan parameter berbeda (tanpa parameter untuk inisialisasi standar, serta dengan parameter `List<JadwalAntarkota>` atau `PemesananController` untuk injeksi data antorhalaman).
+Polimorfisme diterapkan baik dalam bentuk Method Overriding maupun Constructor/Method Overloading:
+1. Method Overriding (@Override): Digunakan pada kustomisasi komponen GUI dan model tabel, seperti meng-override method isCellEditable() pada DefaultTableModel agar sel tabel bersifat read-only, serta meng-override pada KomuterView untuk menggambar garis-garis visual barcode secara dinamis.
+2. Constructor Overloading: Digunakan pada class tampilan seperti PilihJadwalView dan ReviewPemesananView yang memiliki lebih dari satu constructor dengan parameter berbeda (tanpa parameter untuk inisialisasi standar, serta dengan parameter List<JadwalAntarkota> atau PemesananController untuk injeksi data antorhalaman).
 
 Lokasi: /view/KomuterView.java & /view/PilihJadwalView.java
 
@@ -343,40 +343,40 @@ modelJadwal = new DefaultTableModel(
 
 #### 1. Halaman Login & Registrasi Penumpang
 ![Login](docs/images/login.png)
-* **Login Penumpang**: Masukkan `Email` dan `Password` yang telah terdaftar, lalu klik tombol **Login** untuk masuk ke Beranda Utama.
-* **Registrasi Akun Baru**: Klik tombol **Belum punya akun? Klik Disini** untuk membuka halaman Registrasi. Isi Nama Lengkap, Email (wajib menggunakan karakter `@` dan domain valid), Password, Nomor Telepon, serta NIK/Paspor, lalu klik **Register**.
-* **Akses Admin**: Klik tombol **Admin** di bagian bawah untuk beralih ke halaman Login khusus Admin (`AdminLoginView`).
+* **Login Penumpang**: Masukkan Email dan Password yang telah terdaftar, lalu klik tombol Login untuk masuk ke Beranda Utama.
+* **Registrasi Akun Baru**: Klik tombol "Belum punya akun? Klik Disini" untuk membuka halaman Registrasi. Isi Nama Lengkap, Email, Password, Nomor Telepon, serta NIK/Paspor, lalu klik Register.
+* **Akses Admin**: Klik tombol Admin di bagian bawah untuk beralih ke halaman Login khusus Admin.
 
-#### 2. Halaman Beranda Utama Penumpang (`MenuUtamaView`)
+#### 2. Halaman Beranda Utama Penumpang
 ![Beranda](docs/images/beranda.png)
-* **Pencarian Kereta Antarkota**: Pilih *Stasiun Asal*, *Stasiun Tujuan*, *Tanggal Berangkat* (mulai dari hari ini ke depan), dan *Jumlah Penumpang*, lalu klik **Cari jadwal kereta $\rightarrow$**.
-* **Top-Up AXIS E-Wallet**: Pada kartu *Saldo AXIS E-Wallet*, klik tombol **+ Top Up Saldo**, masukkan nominal (`Rp 10.000` – `Rp 2.000.000`), pilih metode pembayaran, dan masukkan nomor rekening/HP asal.
-* **Layanan Komuter**: Klik tombol **Masuk Komuter $\rightarrow$** pada kartu *Layanan Kereta Komuter* untuk melakukan *Tap-In*.
-* **Navigasi Downbar**: Gunakan bilah navigasi bawah (*Downbar*) untuk berpindah secara instan antara halaman **Beranda**, **Tiket** (*Riwayat Antarkota & Komuter*), dan **Akun** (*Profil & Riwayat Top-Up*).
+* **Pencarian Kereta Antarkota**: Pilih Stasiun Asal, Stasiun Tujuan, Tanggal Berangkat, dan Jumlah Penumpang, lalu klik "Cari jadwal kereta".
+* **Top-Up AXIS E-Wallet**: Pada bagian Saldo AXIS E-Wallet, klik tombol "+ Top Up Saldo", masukkan nominal (Rp 10.000 – Rp 2.000.000), pilih metode pembayaran, dan masukkan nomor rekening/HP asal.
+* **Layanan Komuter**: Klik tombol "Masuk Komuter" pada bagian Layanan Kereta Komuter untuk melakukan Tap-In.
+* **Navigasi Downbar**: Gunakan navigasi bawah untuk berpindah antara halaman Beranda, Tiket (Riwayat Antarkota & Komuter), dan Akun (Profil & Riwayat Top-Up).
 
-#### 3. Halaman Pemesanan, Detail Penumpang & Pembayaran Antarkota (`PilihJadwalView` & `ReviewPemesananView`)
+#### 3. Halaman Pemesanan, Detail Penumpang & Pembayaran Antarkota (PilihJadwalView & ReviewPemesananView)
 ![Transaksi Antarkota](docs/images/transaksi-antarkota.png)
-* **Langkah 1 (Pilih Jadwal & Isi Penumpang)**: Klik salah satu jadwal kereta yang tersedia pada tabel di sisi kiri. Di sisi kanan, centang **"Penumpang 1 sama dengan pemesan"** untuk mengisi otomatis data diri Anda, atau klik kartu **Isi Detail Penumpang** untuk memunculkan *pop-up* pengisian Nama, Nomor Telepon, dan NIK. Klik **Lanjutkan ke Review & Bayar $\rightarrow$**.
-* **Langkah 2 (Review Kursi Otomatis & Pembayaran)**: Periksa daftar penumpang beserta Gerbong dan Nomor Kursi yang telah dialokasikan secara otomatis oleh sistem. Periksa total tagihan dan saldo E-Wallet Anda, kemudian klik **Bayar Sekarang (Potong Saldo)**.
+* **Langkah 1 (Pilih Jadwal & Isi Penumpang)**: Klik salah satu jadwal kereta yang tersedia pada tabel di sisi kiri. Di sisi kanan, centang "Penumpang 1 sama dengan pemesan" untuk mengisi otomatis data diri Anda (pemesan), atau klik Isi Detail Penumpang untuk memunculkan pop-up pengisian Nama, Nomor Telepon, dan NIK. Klik "Lanjutkan pembayaran".
+* **Langkah 2 (Review Kursi Otomatis & Pembayaran)**: Periksa daftar penumpang beserta Gerbong dan Nomor Kursi yang telah dialokasikan secara otomatis oleh sistem. Periksa total tagihan dan saldo E-Wallet Anda, kemudian "klik Bayar Sekarang".
 
-#### 4. Halaman Layanan Kereta Komuter (`KomuterView`)
+#### 4. Halaman Layanan Kereta Komuter (KomuterView)
 ![Komuter](docs/images/komuter.png)
-* Pilih **Stasiun Awal Tap-In** pada *dropdown*, lalu klik **Tap-In & Generate Kode Unik (QR/Barcode)**.
-* Sistem akan menampilkan garis visual **Barcode** beserta kode akses *gate* (contoh: `KMT-8A3F19C2-001`). Selama Anda belum diverifikasi *Tap-Out* oleh Admin di stasiun tujuan, tombol *Tap-In* akan terkunci otomatis dan menampilkan status perjalanan aktif Anda.
+* Pilih Stasiun Awal Tap-In pada dropdown, lalu klik Tap-In.
+* Sistem akan menampilkan garis visual Barcode beserta kode akses gate. Selama Anda belum diverifikasi Tap-Out oleh Admin di stasiun tujuan, tombol Tap-In akan terkunci otomatis dan menampilkan status perjalanan aktif Anda (Sekali lagi fitur scan yang asli masih berupa Dummy karena keterbatasan resources).
 
 #### 5. Halaman Dashboard & Manajemen Admin (`DashboardAdminView`)
 ![Dashboard Admin](docs/images/dashboard-admin.png)
 * **Dashboard**: Menampilkan 4 kartu metrik utama (Penumpang Antarkota Hari Ini, Penumpang Komuter Hari Ini, Total Gabungan Penumpang, dan Jumlah Keberangkatan).
 * **Kelola Antarkota**: Menambah dan memperbarui jadwal kereta antarkota serta mengurutkan jadwal berdasarkan waktu keberangkatan terdekat atau terjauh.
-* **Kelola Stasiun**: Mengelola daftar stasiun (dilengkapi filter kategori layanan) dan mengatur harga rute pada tab **Kelola Tarif**.
-* **Verif Tap-Out**: Memilih penumpang komuter yang sedang aktif dari tabel, memilih **Stasiun Akhir** (otomatis terfilter sesuai rute yang tersedia), melihat estimasi potongan tarif, dan menekan **Verifikasi Tap-Out** untuk memotong saldo penumpang.
-* **Monitor Pemesanan**: Mencari riwayat pemesanan tiket berdasarkan Kode Booking atau NIK, mengurutkan berdasarkan waktu pesan terbaru/terlama, dan melihat rincian tiket beserta *barcode* penumpang di tabel bawah.
+* **Kelola Stasiun**: Mengelola daftar stasiun dan mengatur harga rute pada tab Kelola Tarif.
+* **Verif Tap-Out**: Memilih penumpang komuter yang sedang aktif dari tabel, memilih Stasiun Akhir (otomatis terfilter sesuai rute yang tersedia dari tabel Kelola tarif), melihat estimasi potongan tarif, dan menekan Verifikasi Tap-Out untuk memotong saldo penumpang.
+* **Monitor Pemesanan**: Mencari riwayat pemesanan tiket berdasarkan Kode Booking atau NIK, mengurutkan berdasarkan waktu pesan terbaru/terlama, dan melihat rincian tiket penumpang di tabel bawah.
 
 ---
 
-## 👥 Kontributor
+## Kontributor
 
-Proyek Capstone ini dikembangkan oleh Kelompok **AXIS**:
+Proyek Capstone ini dikembangkan oleh Kelompok AXIS:
 
 | No | Nama Mahasiswa | NIM | Kelas |
 | :---: | :--- | :---: | :---: |
@@ -387,5 +387,5 @@ Proyek Capstone ini dikembangkan oleh Kelompok **AXIS**:
 
 ---
 <p align="center">
-  <b>Powered by AXIS Capstone Team © 2026</b>
+  <b>by AXIS Capstone Team © 2026</b>
 </p>
