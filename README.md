@@ -61,17 +61,10 @@ Seluruh alur operasi ini dibangun di atas arsitektur MVC (Model-View-Controller)
    - **Verifikasi Tap-Out Komuter Dinamis**: Menyaring otomatis daftar stasiun keluar berdasarkan ketersediaan rute pada tabel `tarif_komuter`, mencegah *Tap-Out* di stasiun yang sama dengan stasiun *Tap-In*, dan otomatis memotong saldo E-Wallet penumpang.
    - **Monitoring Pemesanan & Tiket**: Pencarian pemesanan berdasarkan Kode Booking atau NIK, pengurutan waktu transaksi, serta penampilan rincian tiket per kode booking.
 
----
-
-## 🛡️ Keunggulan Arsitektur & Teknis
-
-* **Pola Desain MVC + DAO Murni**: Memisahkan logika tampilan (`view`), pengendali alur bisnis (`controller`), struktur objek data (`model`), dan kueri basis data (`dao`).
-* **Transaksi Database Atomik (*ACID Compliance*)**: Proses krusial seperti pemotongan saldo E-Wallet, pembuatan kode booking pemesanan, dan penerbitan tiket dibungkus dalam satu transaksi SQL (`setAutoCommit(false)`), sehingga jika terjadi kegagalan di tengah proses, saldo penumpang tidak akan terpotong sia-sia.
-* **Manajemen Sesi Terpusat (`SessionManager`)**: Menyimpan dan menyinkronkan objek `Penumpang` atau `Admin` yang sedang aktif secara *real-time* di memori aplikasi.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Kategori | Teknologi / Komponen |
 |----------|-----------|
@@ -109,13 +102,13 @@ Alur program pada Dashboard Admin diawali dengan menampilkan ringkasan data tota
 
 **D. Riwayat Tiket**
 
-<img width="599" height="802" alt="CapstoneAxis-Riwayat Tiket drawio (1)" src="https://github.com/user-attachments/assets/3850206b-1df7-4324-99ee-66190b184d62" />
+<img width="300" height="402" alt="CapstoneAxis-Riwayat Tiket drawio (1)" src="https://github.com/user-attachments/assets/3850206b-1df7-4324-99ee-66190b184d62" />
 
 Alur program pada flowchart Menu Riwayat Tiket diawali dengan masuk ke Menu Riwayat AntarKota, di mana pengguna dapat memilih untuk melihat Riwayat AntarKota yang mengambil data dari database Pemesanan untuk menampilkan riwayat pemesanan antarkota beserta status pembayarannya, atau beralih ke Menu Riwayat Komuter yang mengambil data dari database Perjalanan Komuter untuk menyajikan riwayat perjalanan komuter. Setelah informasi riwayat ditampilkan, pengguna dihadapkan pada opsi navigasi pindah halaman; jika pengguna memilih Ya, sistem akan mengarahkan pengguna kembali ke Menu Utama, sedangkan jika memilih Tidak, alur akan berputar kembali ke tampilan awal Menu Riwayat AntarKota.
 
 **E. Akun** 
 
-<img width="502" height="816" alt="CapstoneAxis-Akun drawio (1)" src="https://github.com/user-attachments/assets/5f896c25-a7d2-4a71-87ef-01717c8568b8" />
+<img width="251" height="409" alt="CapstoneAxis-Akun drawio (1)" src="https://github.com/user-attachments/assets/5f896c25-a7d2-4a71-87ef-01717c8568b8" />
 
 Alur program pada flowchart Menu Akun diawali dengan mengakses database Pengguna.Penumpang untuk menampilkan profil pengguna berupa nama penumpang, email, nomor telepon, dan saldo e-wallet. Selanjutnya, sistem mengambil data dari database Riwayat_topup untuk menyajikan tabel riwayat pengisian saldo yang telah dilakukan oleh pengguna. Setelah seluruh informasi akun dan riwayat top-up ditampilkan, pengguna dihadapkan pada opsi navigasi pindah halaman; jika memilih YES, pengguna akan diarahkan kembali ke Menu Utama, sedangkan jika memilih NO, alur program akan tetap bertahan di halaman Menu Akun.
 
@@ -154,7 +147,7 @@ AXIS/
 │       ├── java/
 │       │   ├── com/mycompany/axis/
 │       │   │   └── AXIS.java                    # Main Class (Entry Point Aplikasi)
-│       │   ├── model/                           # Representasi Entitas & Logika Domain (POJO/OOP)
+│       │   ├── model/                           # Packagae model
 │       │   │   ├── Pengguna.java                # Abstract Parent Class
 │       │   │   ├── Admin.java                   # Subclass Pengguna (Admin)
 │       │   │   ├── Penumpang.java               # Subclass Pengguna (Penumpang)
@@ -165,20 +158,20 @@ AXIS/
 │       │   │   ├── PerjalananKomuter.java
 │       │   │   ├── TarifKomuter.java
 │       │   │   └── RiwayatTopup.java
-│       │   ├── dao/                             # Data Access Object (Kueri SQL & Transaksi JDBC)
+│       │   ├── dao/                             # Package DAO
 │       │   │   ├── AuthDAO.java
 │       │   │   ├── AdminDAO.java
 │       │   │   ├── PenumpangDAO.java
 │       │   │   ├── PemesananDAO.java
 │       │   │   └── KomuterDAO.java
-│       │   ├── controller/                      # Penghubung Logika Bisnis antara View & DAO/Model
+│       │   ├── controller/                      # Package controller
 │       │   │   ├── SessionManager.java
 │       │   │   ├── AuthController.java
 │       │   │   ├── AdminController.java
 │       │   │   ├── MenuUtamaController.java
 │       │   │   ├── PemesananController.java
 │       │   │   └── KomuterController.java
-│       │   ├── view/                            # Antarmuka Pengguna Grafis (Java Swing JFrame Forms)
+│       │   ├── view/                            # Package view
 │       │   │   ├── LoginView.java
 │       │   │   ├── RegisterView.java
 │       │   │   ├── AdminLoginView.java
@@ -187,30 +180,30 @@ AXIS/
 │       │   │   ├── PilihJadwalView.java
 │       │   │   ├── ReviewPemesananView.java
 │       │   │   └── KomuterView.java
-│       │   └── util/                            # Utilitas Koneksi Database
+│       │   └── util/                            # package util
 │       │       └── DBConnection.java
 │       └── resources/
-│           └── image/                           # Aset Gambar & Logo Aplikasi
+│           └── image/                           # Aset Gambar
 │               ├── axis-upd-wht.png
 │               ├── asix-upd-blck.png
 │               ├── axisTrain.jpg
 │               └── traindeploy.jpg
-├── axis.sql                                     # File Dump Skema & Data Awal Database MySQL
-├── pom.xml                                      # Konfigurasi Proyek & Dependensi Maven
-└── README.md                                    # Dokumentasi Proyek
+├── axis.sql                                     # File Database MySQL
+├── pom.xml                                      
+└── README.md                                    
 ```
 
 ---
 
-## 🧩 Penerapan 4 Pilar OOP
+## Penerapan 4 Pilar OOP
 
-Seluruh komponen di dalam aplikasi **AXIS E-Ticketing** dirancang dengan menerapkan keempat pilar utama Pemrograman Berorientasi Objek (*Object-Oriented Programming*):
+Seluruh komponen di dalam aplikasi AXIS E-Ticketing dirancang dengan menerapkan keempat pilar utama Pemrograman Berorientasi Objek:
 
-### 1. Abstraction (Abstraksi)
-**Penjelasan:**  
+### 1. Abstraction
+
 Abstraksi diterapkan pada class `Pengguna` yang dideklarasikan sebagai `abstract class`. Di dunia nyata, tidak ada entitas "Pengguna" yang bersifat umum tanpa peran yang jelas; setiap pengguna pasti merupakan seorang `Admin` atau `Penumpang`. Oleh karena itu, `Pengguna` tidak dapat diinstansiasi secara langsung dan mendefinisikan struktur dasar serta kontrak perilaku yang relevan bagi seluruh akun di dalam sistem.
 
-**Lokasi:** `src/main/java/model/Pengguna.java`
+Lokasi: model/Pengguna.java
 
 ```java
 package model;
@@ -225,8 +218,6 @@ public abstract class Pengguna {
         this.email = email;
         this.password = password;
     }
-
-    // Method konkret & abstraksi identitas yang diwariskan ke subclass
     public String getIdPengguna() { return idPengguna; }
     public String getEmail() { return email; }
 }
@@ -234,11 +225,11 @@ public abstract class Pengguna {
 
 ---
 
-### 2. Inheritance (Pewarisan)
-**Penjelasan:**  
+### 2. Inheritance
+ 
 Pewarisan diterapkan pada class `Penumpang` dan `Admin` yang merupakan *subclass* (*child class*) dari `Pengguna` menggunakan kata kunci `extends`. Kedua class tersebut mewarisi atribut `idPengguna`, `email`, dan `password` beserta method *getter/setter* dari `Pengguna`, lalu menambahkan atribut spesifik sesuai perannya (seperti `nikNomorPassport` dan `saldoEwallet` pada `Penumpang`, atau `kodeKaryawan` dan `levelAkses` pada `Admin`).
 
-**Lokasi:** `src/main/java/model/Penumpang.java` & `src/main/java/model/Admin.java`
+Lokasi: /model/Penumpang.java & /model/Admin.java
 
 ```java
 package model;
@@ -252,7 +243,6 @@ public class Penumpang extends Pengguna {
     public Penumpang(String idPengguna, String email, String password, 
                      String nikNomorPassport, String namaLengkap, 
                      String nomorTelepon, double saldoEwallet) {
-        // Memanggil constructor parent class (Pengguna)
         super(idPengguna, email, password);
         this.nikNomorPassport = nikNomorPassport;
         this.namaLengkap = namaLengkap;
@@ -264,11 +254,11 @@ public class Penumpang extends Pengguna {
 
 ---
 
-### 3. Encapsulation (Enkapsulasi)
-**Penjelasan:**  
-Seluruh atribut pada class-class di dalam *package* `model` (seperti `PerjalananKomuter`, `Tiket`, `Pemesanan`, `Stasiun`) maupun state di dalam `controller` dibungkus menggunakan hak akses `private` (*data hiding*). Akses untuk membaca atau memodifikasi nilai atribut hanya dapat dilakukan melalui method `public` (*Getter* dan *Setter*) serta method bisnis terkontrol, sehingga integritas data tetap terjaga.
+### 3. Encapsulation 
 
-**Lokasi:** `src/main/java/model/PerjalananKomuter.java`
+Seluruh atribut pada class-class di dalam *package* `model` (seperti `PerjalananKomuter`, `Tiket`, `Pemesanan`, `Stasiun`) maupun state di dalam `controller` dibungkus menggunakan hak akses `private` (*data hiding*). Akses untuk membaca atau memodifikasi nilai atribut hanya dapat dilakukan melalui method public serta method bisnis terkontrol, sehingga integritas data tetap terjaga.
+
+Lokasi: /model/PerjalananKomuter.java
 
 ```java
 package model;
@@ -276,13 +266,11 @@ package model;
 import java.util.UUID;
 
 public class PerjalananKomuter {
-    // Atribut dienkapsulasi dengan modifier private
     private int idPerjalanan;
     private String waktuTapIn;
     private String statusPerjalanan;
     private String penumpangNik;
 
-    // Akses terkontrol melalui public method
     public boolean isMasihAktif() {
         return statusPerjalanan == null || !statusPerjalanan.equalsIgnoreCase("Selesai");
     }
@@ -300,60 +288,58 @@ public class PerjalananKomuter {
 
 ---
 
-### 4. Polymorphism (Polimorfisme)
-**Penjelasan:**  
+### 4. Polymorphism 
+
 Polimorfisme diterapkan baik dalam bentuk **Method Overriding** (*Runtime Polymorphism*) maupun **Constructor/Method Overloading** (*Compile-time Polymorphism*):
 1. **Method Overriding (`@Override`)**: Digunakan pada kustomisasi komponen GUI dan model tabel, seperti meng-*override* method `isCellEditable()` pada `DefaultTableModel` agar sel tabel bersifat *read-only*, serta meng-*override* `paintComponent(Graphics g)` pada `KomuterView` untuk menggambar garis-garis visual *barcode* secara dinamis.
 2. **Constructor Overloading**: Digunakan pada class tampilan seperti `PilihJadwalView` dan `ReviewPemesananView` yang memiliki lebih dari satu *constructor* dengan parameter berbeda (tanpa parameter untuk inisialisasi standar, serta dengan parameter `List<JadwalAntarkota>` atau `PemesananController` untuk injeksi data antorhalaman).
 
-**Lokasi:** `src/main/java/view/KomuterView.java` & `src/main/java/view/PilihJadwalView.java`
+Lokasi: /view/KomuterView.java & /view/PilihJadwalView.java
 
 ```java
-// Contoh 1: Method Overriding (@Override) untuk menggambar Barcode Komuter
+// Penerapan 1 
 JPanel canvasGarisBarcode = new JPanel() {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        // Implementasi kustom menggambar pola garis barcode dari kode unik
     }
 };
 
-// Contoh 2: Method Overriding (@Override) untuk mengunci edit sel pada JTable
+// Penerapan 2
 modelJadwal = new DefaultTableModel(
     new String[]{"ID", "Nama Kereta", "Berangkat", "Tiba", "Harga / Pax"}, 0
 ) {
     @Override
     public boolean isCellEditable(int r, int c) {
-        return false; // Mengubah perilaku default tabel menjadi read-only
+        return false; 
     }
 };
 ```
 
 ---
 
-## 🚀 Cara Penggunaan Program
+## Cara Penggunaan Program
 
 ### Prasyarat & Instalasi
 
 1. **Clone Repository**
    ```bash
    git clone https://github.com/username/AXIS.git
-   cd AXIS
    ```
 2. **Persiapan Database MySQL**
-   - Jalankan layanan **MySQL** melalui Laragon atau XAMPP.
-   - Buat database baru bernama `axis` di phpMyAdmin / MySQL Client.
-   - *Import* file skema database `axis.sql` ke dalam database `axis`.
+   - Jalankan layanan MySQL melalui Laragon atau XAMPP.
+   - Buat database baru bernama axis di phpMyAdmin / MySQL Client.
+   - Import file skema database axis.sql ke dalam database axis.
 3. **Konfigurasi Koneksi Database**
-   - Pastikan pengaturan URL, `USER`, dan `PASS` di dalam file `src/main/java/util/DBConnection.java` telah sesuai dengan konfigurasi MySQL lokal Anda (default: `jdbc:mysql://localhost:3306/axis`, user: `root`, password: `""`).
+   - Pastikan pengaturan URL, USER, dan PASS di dalam file src/main/java/util/DBConnection.java telah sesuai dengan konfigurasi MySQL lokal Anda (default: jdbc:mysql://localhost:3306/axis, user: root, password: "").
 4. **Menjalankan Aplikasi**
-   - Buka proyek **AXIS** menggunakan **Apache NetBeans IDE**.
-   - Klik kanan pada proyek $\rightarrow$ pilih **Clean and Build**.
-   - Tekan **F6 (Run Project)** untuk menjalankan class utama `com.mycompany.axis.AXIS`.
+   - Buka proyek AXIS menggunakan Apache NetBeans IDE.
+   - Klik kanan pada proyek pilih Clean and Build.
+   - Tekan Run Project untuk menjalankan class utama.
 
 ---
 
-### Panduan Penggunaan (dengan Screenshot GUI)
+### Panduan Penggunaan
 
 #### 1. Halaman Login & Registrasi Penumpang
 ![Login](docs/images/login.png)
