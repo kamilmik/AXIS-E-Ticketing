@@ -342,30 +342,57 @@ modelJadwal = new DefaultTableModel(
 ### Panduan Penggunaan
 
 #### 1. Halaman Login & Registrasi Penumpang
-![Login](docs/images/login.png)
+<p align="center">
+  <img width="32%" alt="Capstone Axis" src="https://github.com/user-attachments/assets/ff337d67-d79f-49fc-9d8e-d9ec780b479f" />
+  <img width="32%" alt="Capstone Axis (1)" src="https://github.com/user-attachments/assets/94b2ff9a-7f42-4488-b222-b02dd7626cc7" />
+  <img width="32%" alt="Capstone Axis (2)" src="https://github.com/user-attachments/assets/e0999f96-acf7-48f9-a3bb-1c6bd722854f" />
+</p>
+
 * **Login Penumpang**: Masukkan Email dan Password yang telah terdaftar, lalu klik tombol Login untuk masuk ke Beranda Utama.
 * **Registrasi Akun Baru**: Klik tombol "Belum punya akun? Klik Disini" untuk membuka halaman Registrasi. Isi Nama Lengkap, Email, Password, Nomor Telepon, serta NIK/Paspor, lalu klik Register.
 * **Akses Admin**: Klik tombol Admin di bagian bawah untuk beralih ke halaman Login khusus Admin.
 
 #### 2. Halaman Beranda Utama Penumpang
-![Beranda](docs/images/beranda.png)
+<p align="center">
+  <img width="32%" alt="Capstone Axis (3)" src="https://github.com/user-attachments/assets/5ee2bc14-1ef0-492f-9821-e17ae98a6a40" />
+  <img width="32%" alt="Capstone Axis (13)" src="https://github.com/user-attachments/assets/d4a52c3f-fbfc-4afb-8a87-dcd0ba64f3d2" />
+  <img width="32%" alt="Capstone Axis (14)" src="https://github.com/user-attachments/assets/197eabe1-16a6-4b60-bb70-f6fa3ecb7d0d" />
+</p>
+
 * **Pencarian Kereta Antarkota**: Pilih Stasiun Asal, Stasiun Tujuan, Tanggal Berangkat, dan Jumlah Penumpang, lalu klik "Cari jadwal kereta".
 * **Top-Up AXIS E-Wallet**: Pada bagian Saldo AXIS E-Wallet, klik tombol "+ Top Up Saldo", masukkan nominal (Rp 10.000 – Rp 2.000.000), pilih metode pembayaran, dan masukkan nomor rekening/HP asal.
 * **Layanan Komuter**: Klik tombol "Masuk Komuter" pada bagian Layanan Kereta Komuter untuk melakukan Tap-In.
 * **Navigasi Downbar**: Gunakan navigasi bawah untuk berpindah antara halaman Beranda, Tiket (Riwayat Antarkota & Komuter), dan Akun (Profil & Riwayat Top-Up).
 
+
 #### 3. Halaman Pemesanan, Detail Penumpang & Pembayaran Antarkota (PilihJadwalView & ReviewPemesananView)
-![Transaksi Antarkota](docs/images/transaksi-antarkota.png)
+<p align="center">
+  <img width="49%" alt="Capstone Axis (4)" src="https://github.com/user-attachments/assets/26545c28-008c-4a46-a647-5c09108d9753" />
+  <img width="49%" alt="Capstone Axis (5)" src="https://github.com/user-attachments/assets/44b756fd-614c-4af3-bcf5-a199f6824d38" />
+</p>
+ 
 * **Langkah 1 (Pilih Jadwal & Isi Penumpang)**: Klik salah satu jadwal kereta yang tersedia pada tabel di sisi kiri. Di sisi kanan, centang "Penumpang 1 sama dengan pemesan" untuk mengisi otomatis data diri Anda (pemesan), atau klik Isi Detail Penumpang untuk memunculkan pop-up pengisian Nama, Nomor Telepon, dan NIK. Klik "Lanjutkan pembayaran".
 * **Langkah 2 (Review Kursi Otomatis & Pembayaran)**: Periksa daftar penumpang beserta Gerbong dan Nomor Kursi yang telah dialokasikan secara otomatis oleh sistem. Periksa total tagihan dan saldo E-Wallet Anda, kemudian "klik Bayar Sekarang".
 
 #### 4. Halaman Layanan Kereta Komuter (KomuterView)
-![Komuter](docs/images/komuter.png)
+<p align="center">
+  <img width="50%" alt="Capstone Axis (6)" src="https://github.com/user-attachments/assets/85eb146f-eb53-4e3e-886e-934d1f451b2b" />
+</p>
+
 * Pilih Stasiun Awal Tap-In pada dropdown, lalu klik Tap-In.
 * Sistem akan menampilkan garis visual Barcode beserta kode akses gate. Selama Anda belum diverifikasi Tap-Out oleh Admin di stasiun tujuan, tombol Tap-In akan terkunci otomatis dan menampilkan status perjalanan aktif Anda (Sekali lagi fitur scan yang asli masih berupa Dummy karena keterbatasan resources).
 
 #### 5. Halaman Dashboard & Manajemen Admin (`DashboardAdminView`)
-![Dashboard Admin](docs/images/dashboard-admin.png)
+<p align="center">
+  <img width="49%" alt="Capstone Axis (7)" src="https://github.com/user-attachments/assets/fa463b85-b189-4760-8a5a-012f472e2c27" />
+  <img width="49%" alt="Capstone Axis (8)" src="https://github.com/user-attachments/assets/1309fb54-7c05-48b4-b735-9f6c51f3d190" />
+  <br>
+  <img width="49%" alt="Capstone Axis (10)" src="https://github.com/user-attachments/assets/384e269f-8ed3-4a06-bd4e-0cf894a6f390" />
+  <img width="49%" alt="Capstone Axis (11)" src="https://github.com/user-attachments/assets/686a8efe-4248-4642-b5c3-acce8dc02f32" />
+  <br>
+  <img width="50%" alt="Capstone Axis (12)" src="https://github.com/user-attachments/assets/74728b8d-df0d-49af-9952-489e13df7003" />
+</p>
+
 * **Dashboard**: Menampilkan 4 kartu metrik utama (Penumpang Antarkota Hari Ini, Penumpang Komuter Hari Ini, Total Gabungan Penumpang, dan Jumlah Keberangkatan).
 * **Kelola Antarkota**: Menambah dan memperbarui jadwal kereta antarkota serta mengurutkan jadwal berdasarkan waktu keberangkatan terdekat atau terjauh.
 * **Kelola Stasiun**: Mengelola daftar stasiun dan mengatur harga rute pada tab Kelola Tarif.
