@@ -15,15 +15,14 @@
 ---
 
 Daftar Isi
-1. [Deskripsi Singkat](##-Deskripsi-singkat)
-2. [Fitur Utama Program](##-fitur-utama-program)
-3. [Keunggulan Arsitektur & Teknis](##-keunggulan-arsitektur--teknis)
-4. [Tech Stack](##-tech-stack)
-5. [Perancangan Sistem (Flowchart, Use Case, ERD)](##-perancangan-sistem)
-6. [Struktur Folder & Package](##-struktur-folderpackage)
-7. [Penerapan 4 Pilar OOP](##-penerapan-4-pilar-oop)
-8. [Cara Penggunaan Program](##-cara-penggunaan-program)
-9. [Kontributor](##-kontributor)
+1. [Deskripsi Singkat](#-deskripsi-singkat)
+2. [Fitur Utama Program](#-fitur-utama-program)
+3. [Tech Stack](#-tech-stack)
+4. [Perancangan Sistem (Flowchart, Use Case, ERD)](#-perancangan-sistem)
+5. [Struktur Folder & Package](#-struktur-folder)
+6. [Penerapan 4 Pilar OOP](#-penerapan-4-pilar-oop)
+7. [Cara Penggunaan Program](#-cara-penggunaan-program)
+8. [Kontributor](#-kontributor)
 
 ---
 
@@ -136,7 +135,7 @@ Sistem E-Ticketing AXIS dibangun di atas entitas utama `pengguna` yang terspesia
 
 ---
 
-## 📂 Struktur Folder/Package
+## Struktur Folder
 
 Proyek ini menggunakan struktur standar **Apache Maven** dengan pemisahan *package* berbasis tanggung jawab (**MVC + DAO**):
 
